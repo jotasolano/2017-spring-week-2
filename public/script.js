@@ -19,6 +19,12 @@ d3.queue()
 function dataLoaded(err,trips,stations){
 	console.log(trips);
 	console.log(stations);
+
+	//Exercise 1: Draw a histogram to study trip durations
+
+	//Exercise 2: Draw a time series to study the overall number of trips over time
+
+	//Exercise 3: Average number of trips by time of the day?
 }
 
 function parseTrips(d){
