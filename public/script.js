@@ -1,5 +1,5 @@
 //Set up a drawing environment
-var m = {t:50,r:50,b:50,l:50},
+var m = {t:100,r:100,b:100,l:100},
 	w = document.getElementById('plot1').clientWidth - m.l - m.r,
 	h = document.getElementById('plot1').clientHeight - m.t - m.b;
 var plots = d3.selectAll('.plot')
@@ -17,12 +17,55 @@ d3.queue()
 	.await(dataLoaded);
 
 function dataLoaded(err,trips,stations){
-	console.log(trips);
-	console.log(stations);
 
 	//Exercise 1: Draw a histogram to study trip durations
+	//Create a histogram function to transform the trips array
+	//Check out the API for:
+	//d3.histogram()
+	//d3.range()
+	var MIN_DURATION = 0, MAX_DURATION = 3600;
+	var histogramDuration = d3.histogram()
+		.value(function(d,i){return d.duration})
+		.domain([MIN_DURATION,MAX_DURATION])
+		.thresholds(d3.range(MIN_DURATION,MAX_DURATION,60));
+
+	console.log(histogramDuration(trips));
+
+	//Represent
+	var scaleX = d3.scaleLinear().domain([MIN_DURATION,MAX_DURATION]).range([0,w]),
+		scaleY = d3.scaleLinear().domain([0,d3.max(histogramDuration(trips),function(d){return d.length})]).range([h,0]);
+
+	var bins = plot1.classed('histogram',true).selectAll('.bin')
+		.data(histogramDuration(trips))
+		.enter()
+		.append('rect').attr('class','bin')
+		.attr('x',function(d){return scaleX(d.x0)})
+		.attr('width',function(d){return scaleX(d.x1) - scaleX(d.x0)})
+		.attr('y', function(d){return scaleY(d.length)})
+		.attr('height',function(d){return h - scaleY(d.length)});
+	//x and y axis
+	var xAxis = d3.axisBottom()
+		.scale(scaleX)
+		.tickValues(d3.range(MIN_DURATION,MAX_DURATION+1,60*5))
+		.tickFormat(function(tick){return tick/60 + " min"});
+	plot1.append('g').attr('class','axis axis-x').attr('transform','translate(0,'+h+')')
+		.call(xAxis);
+	//Draw median and mean durations
+	var medianDuration = d3.median(trips,function(d){return d.duration}),
+		meanDuration = d3.mean(trips,function(d){return d.duration});
+	plot1.append('line').datum(medianDuration)
+		.attr('transform',function(d){return 'translate('+scaleX(d)+')'})
+		.attr('y0',h-200)
+		.attr('y1',h)
+		.attr('class','median');
+	plot1.append('line').datum(meanDuration)
+		.attr('transform',function(d){return 'translate('+scaleX(d)+')'})
+		.attr('y0',h-200)
+		.attr('y1',h)
+		.attr('class','mean');
 
 	//Exercise 2: Draw a time series to study the overall number of trips over time
+
 
 	//Exercise 3: Average number of trips by time of the day?
 }

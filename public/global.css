@@ -10,3 +10,16 @@ body{
 .plot{
 	min-height:500px;
 }
+
+/*histogram related*/
+.histogram .bin{
+	fill:#03afeb;
+	fill-opacity:.8;
+}
+.histogram .mean,
+.histogram .median{
+	fill:none;
+	stroke-width:2px;
+}
+.histogram .mean{stroke:rgb(255,0,0);}
+.histogram .median{stroke:rgb(0,255,255);}
