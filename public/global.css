@@ -7,6 +7,10 @@ body{
 	background:rgb(252,252,252);
 }
 
+.container{
+	position:relative;
+}
+
 .plot{
 	min-height:300px;
 }
@@ -72,3 +76,18 @@ body{
 	.axis-radial .pm text{ fill:#03afeb; }
 	.axis-radial .am line{ stroke:rgb(255,50,0); }
 	.axis-radial .pm line{ stroke:#03afeb; }
+
+/*tooltip*/
+.custom-tooltip{
+	position:absolute;
+	width:200px;
+	padding:10px 10px;
+	color:rgb(80,80,80);
+	font-size:.8em;
+	left:0;
+	box-shadow:0 5px 10px rgba(0,0,0,.1);
+	opacity:0;
+	background:white;
+}
+	.custom-tooltip .heading{ font-weight:bold; }
+	.custom-tooltip .value{ font-size:1.5em; }

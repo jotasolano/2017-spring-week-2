@@ -1,6 +1,6 @@
-/*Example 2
+/*Example 4
 
-Three complete examples showing progressively more advanced use cases for d3.histogram layout
+Improved interactions with line and area charts
 */
 
 //Set up a drawing environment
@@ -16,7 +16,15 @@ var plots = d3.selectAll('.plot')
 	.attr('transform','translate('+m.l+','+m.t+')');
 var plot1 = plots.filter(function(d,i){ return i===0;}),
 	plot2 = plots.filter(function(d,i){return i===1}).classed('time-series',true);
-	plot3 = plots.filter(function(d,i){return i===2}).classed('time-series-radial',true);
+	plot3 = plots.filter(function(d,i){return i===2}).classed('time-series-radial',true),
+	tooltip = d3.select('.container')
+		.append('div').attr('class','custom-tooltip');
+	tooltip.append('p').attr('class','heading');
+	tooltip.append('p').attr('class','value');
+
+var scaleWeek = d3.scaleOrdinal()
+	.domain(d3.range(0,7,1))
+	.range(['Mon','Tu','Wed','Th','Fri','Sat','Sun'])
 
 d3.queue()
 	.defer(d3.csv,'./data/hubway_trips_reduced.csv',parseTrips)
@@ -26,17 +34,6 @@ d3.queue()
 function dataLoaded(err,trips,stations){
 
 	//Example 1: Histogram of trip durations, a relatively simple application of the histogram layout
-	//d3 methods to review
-
-	// d3.histogram
-		// histogram.value
-		// histogram.domain
-		// histogram.thresholds
-	// d3.axisBottom, d3.axisLeft
-		// axis.tickValues
-		// axis.tickFormat
-	// d3.range
-	// The enter-exit-update pattern
 
 	var MIN_DURATION = 0, MAX_DURATION = 3600; //Note the naming convention: all caps indicate constants
 	// Create a histogram function
@@ -58,7 +55,38 @@ function dataLoaded(err,trips,stations){
 		.attr('x',function(d){return scaleX(d.x0)})
 		.attr('width',function(d){return scaleX(d.x1) - scaleX(d.x0)})
 		.attr('y', function(d){return scaleY(d.length)})
-		.attr('height',function(d){return h - scaleY(d.length)});
+		.attr('height',function(d){return h - scaleY(d.length)})
+		//Basic mouseenter/mousemove/mouseleave pattern for dealing with tooltips
+		.on('mouseenter',function(d){
+			d3.select(this)
+				.style('fill','rgb(255,50,0)');
+
+			var tooltip = d3.select('.custom-tooltip')
+				.style('visibility','visible');
+			tooltip.select('.heading')
+				.html('Trips between ' + d.x0 + 's - ' + d.x1 + 's:');
+			tooltip.select('.value')
+				.html(d.length);
+			tooltip				
+				.transition()
+				.style('opacity',1);
+
+		})
+		.on('mousemove',function(d){
+			var mouseXY = d3.mouse(d3.select('.container').node());
+
+			d3.select('.custom-tooltip')
+				.style('left', (mouseXY[0]-100)+'px')
+				.style('top', (mouseXY[1]+20)+'px');
+		})
+		.on('mouseleave',function(d){
+			d3.select(this)
+				.style('fill',null);
+
+			d3.select('.custom-tooltip')
+				.style('opacity',0)
+				.style('visibility','none');
+		});
 	//x and y axis
 	var xAxis = d3.axisBottom()
 		.scale(scaleX)
@@ -71,7 +99,7 @@ function dataLoaded(err,trips,stations){
 		.call(xAxis);
 
 	//Draw median and mean durations
-	var medianDuration = d3.median(trips,function(d){return d.duration}),
+/*	var medianDuration = d3.median(trips,function(d){return d.duration}),
 		meanDuration = d3.mean(trips,function(d){return d.duration});
 	plot1.append('line').datum(medianDuration)
 		.attr('transform',function(d){return 'translate('+scaleX(d)+')'})
@@ -83,22 +111,13 @@ function dataLoaded(err,trips,stations){
 		.attr('y0',h-200)
 		.attr('y1',h)
 		.attr('class','mean');
-
+*/
 
 	//Exercise 2: Trips over time
-	//Even though this is not explicitly a histogram, 
-	//the histogram layout is handy for "binning" trips at regular time intervals
-	//d3 methods to review
-
-	// d3.timeInterval
-	// 	interval.range
-	// 	interval.every
-	// d3.line
-	// d3.area
-	// selection.datum
-	// selection.append
-	// selection.insert
-	// selection.classed
+	//This part demonstrates a different way of implementing mouse interactions
+	//d3 methods used:
+		//d3.bisector
+		//d3.mouse
 
 	var t0 = new Date(2011,0,1), t1 = new Date(2013,11,31),
 		tThresholds = d3.timeDay.range(t0,t1,1); //interval.range(start, stop[, step]
@@ -110,37 +129,113 @@ function dataLoaded(err,trips,stations){
 
 	//Represent
 	//Line and area
-	scaleX = d3.scaleTime()
+	//Note: new scale function
+	var scaleXTime = d3.scaleTime()
 		.domain([t0,t1])
 		.range([0,w]);
-	scaleY.domain([0,d3.max(histogramTime(trips),function(d){return d.length})]);
+	var scaleYTime = d3.scaleLinear()
+		.domain([0,d3.max(histogramTime(trips),function(d){return d.length})])
+		.range([h,0])
 
 	var line = d3.line()
-		.x(function(d){return scaleX(new Date((d.x1.valueOf()+d.x0.valueOf())/2))})
-		.y(function(d){return scaleY(d.length)});
+		.x(function(d){return scaleXTime(new Date((d.x1.valueOf()+d.x0.valueOf())/2))})
+		.y(function(d){return scaleYTime(d.length)});
 
 	var area = d3.area()
-		.x(function(d){return scaleX(new Date((d.x1.valueOf()+d.x0.valueOf())/2))})
-		.y1(function(d){return scaleY(d.length)})
+		.x(function(d){return scaleXTime(new Date((d.x1.valueOf()+d.x0.valueOf())/2))})
+		.y1(function(d){return scaleYTime(d.length)})
 		.y0(h);
 
-	//Note the use of datum
+	//SVG clip path
+	var clipRect = d3.select(plot2.node().parentNode)
+		.append('defs')
+		.append('clipPath').attr('id','view-port')
+		.append('rect')
+		//.attr('x',m.l)
+		//.attr('y',m.t)
+		.attr('width',w/2)
+		.attr('height',h);
+
+
 	plot2.append('path').attr('class','area')
 		.datum(histogramTime(trips))
 		.attr('d',area);
 	plot2.append('path').attr('class','line')
 		.datum(histogramTime(trips))
 		.attr('d',line)
+		.attr('clip-path','url(#view-port)')
+	var pointer = plot2.append('circle')
+		.attr('class','pointer')
+		.attr('fill','rgb(80,80,80)')
+		.attr('r',3)
+		.style('opacity',0)
+
+	//Append a rect as mouse target
+	var bisectDate = d3.bisector(function(d){return d.x0}).right,
+		histogramTrips = histogramTime(trips);
+
+	plot2.append('rect')
+		.attr('x',0).attr('y',0)
+		.attr('width',w)
+		.attr('height',h).attr('class','mouse-target')
+		.style('opacity',0)
+		.on('mouseenter',function(){
+			console.log('timeseries:mouseenter')
+			var tooltip = d3.select('.custom-tooltip')
+				.style('visibility','visible')
+				.transition()
+				.style('opacity',1)
+			pointer.style('opacity',1);
+		})
+		.on('mousemove',function(){
+			var plotX = d3.mouse(this)[0],
+				mouseX = d3.mouse(d3.select('.container').node())[0],
+				mouseY = d3.mouse(d3.select('.container').node())[1],
+				time = scaleXTime.invert(plotX);
+
+			//what would the right insertion point?
+			var i = bisectDate(histogramTrips, time),
+				targetBin = histogramTrips[i];
+
+			//Given this insertion point
+			var x = scaleXTime(new Date((targetBin.x0.valueOf()+targetBin.x1.valueOf())/2)),
+				y = scaleYTime(targetBin.length);
+
+			pointer
+				.attr('cx', x)
+				.attr('cy', y);
+
+			clipRect.attr('width',plotX);
+
+			tooltip
+				.style('left',(mouseX-100)+'px')
+				.style('top',(mouseY+50)+'px')
+				.select('.heading')
+				.html((targetBin.x0.getMonth()+1)+'/'+targetBin.x0.getDate()+'/'+targetBin.x0.getFullYear()+', '+scaleWeek(targetBin.x0.getDay()) );
+			tooltip
+				.select('.value')
+				.html(targetBin.length + ' trips');
+
+		})
+		.on('mouseleave',function(){
+			console.log('timeseries:mouseleave')
+			var tooltip = d3.select('.custom-tooltip')
+				.style('visibility','none')
+				.style('opacity',0);
+
+			pointer.style('opacity',0);
+			clipRect.attr('width',0);
+		});
 
 	//Axis
-	xAxis.scale(scaleX)
+	xAxis.scale(scaleXTime)
 		.tickValues(null)
 		.tickFormat(null)
 		.ticks(d3.timeMonth.every(3));
 	yAxis
 		.tickSize(-w)
 		.tickValues(d3.range(0,600,100))
-		.scale(scaleY);
+		.scale(scaleYTime);
 
 	plot2.append('g').attr('transform','translate(0,'+h+')')
 		.call(xAxis);
@@ -148,21 +243,6 @@ function dataLoaded(err,trips,stations){
 		.call(yAxis);
 
 	//Exercise 3: Average number of trips by time of the day?
-
-/*	This more advanced example demonstrates a few interesting points:
-	1. by creatively "binning" values using histogram.value, we can produce
-	a layout of the trips data binned by time of the day, but not by month or year
-	2. Data layout does not dictate visual expression. 
-	3. By "folding" a linear chart with cartesian x-y coordinates, we produce a radial chart
-*/	
-
-	//d3.radialArea
-		// radialArea.angle
-		// radialArea.innerRadius
-		// radialArea.outerRadius
-		// radialArea.lineOuterRadius
-	//The "rotate" property of svg-transform
-
 	//Note here how we are binning the values
 	var histogramHour = d3.histogram()
 		.domain([0,24])
