@@ -8,12 +8,15 @@ body{
 }
 
 .plot{
-	min-height:500px;
+	min-height:300px;
+}
+#plot3{
+	height:500px;
 }
 
-/*histogram related*/
+/*#plot1*/
 .histogram .bin{
-	fill:#03afeb;
+	fill:rgb(50,50,50);
 	fill-opacity:.8;
 }
 .histogram .mean,
@@ -21,5 +24,51 @@ body{
 	fill:none;
 	stroke-width:2px;
 }
-.histogram .mean{stroke:rgb(255,0,0);}
-.histogram .median{stroke:rgb(0,255,255);}
+.histogram .mean{stroke:rgb(255,50,0);}
+.histogram .median{
+	stroke:rgb(255,50,0);
+	stroke-dasharray: 3px 3px;
+}
+
+/*#plot-2*/
+.time-series .line{
+	stroke:rgb(80,80,80);
+	fill:none;
+	stroke-width:1px;
+}
+.time-series .area{
+	fill-opacity:.1;
+}
+#plot2 .axis-y .tick line{
+	stroke:white;
+	stroke-width:.5px;
+}
+#plot2 .axis-y .domain{
+	display:none;
+}
+
+/*#plot3*/
+.time-series-radial .area{
+	fill-opacity:.2;
+}
+	.time-series-radial .am{ fill:rgb(255,50,0); }
+	.time-series-radial .pm{ fill:#03afeb }
+.time-series-radial .line{
+	fill:none;
+	stroke-width:1.5px;
+}
+	.time-series-radial .am-line{ stroke:rgb(255,50,0); }
+	.time-series-radial .pm-line{ stroke:#03afeb; }
+
+.axis-radial .tick-y{
+	fill:none;
+	stroke:rgb(220,220,220);
+}
+	.axis-radial .major{stroke-width:1.5px;}
+.axis-radial .tick-x text{
+	font-size:10px;
+}
+	.axis-radial .am text{ fill:rgb(255,50,0); }
+	.axis-radial .pm text{ fill:#03afeb; }
+	.axis-radial .am line{ stroke:rgb(255,50,0); }
+	.axis-radial .pm line{ stroke:#03afeb; }
