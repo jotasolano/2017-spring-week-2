@@ -21,6 +21,15 @@ function dataLoaded(err,trips,stations){
 	console.log(stations);
 
 	//Exercise 1: Draw a histogram to study trip durations
+	var MIN_DURATION = 0,
+		MAX_DURATION = 3600;
+
+	var histogramDuration = d3.histogram()
+		.domain([MIN_DURATION, MAX_DURATION])
+		.thresholds(d3.range(MIN_DURATION, MAX_DURATION, 300))
+		.value(function(d) { return d.duration; });
+
+	console.log(histogramDuration(trips));
 
 	//Exercise 2: Draw a time series to study the overall number of trips over time
 
