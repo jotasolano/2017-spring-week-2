@@ -10,3 +10,13 @@ body{
 .plot{
 	min-height:500px;
 }
+
+.time-series-line{
+	fill: none;
+	stroke: rgb(100, 100, 100);
+	stroke-width: 2px;
+}
+
+.time-series-area{
+	fill-opacity: 0.05;
+}
